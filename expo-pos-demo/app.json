@@ -9,13 +9,15 @@
     "newArchEnabled": true,
     "scheme": "expoposdemo",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nobrien2004.expoposdemo"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "src/assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.nobrien2004.expoposdemo"
     },
     "web": {
       "favicon": "src/assets/images/favicon.png"

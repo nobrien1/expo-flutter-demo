@@ -352,6 +352,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
     return SafeArea(
       child: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
