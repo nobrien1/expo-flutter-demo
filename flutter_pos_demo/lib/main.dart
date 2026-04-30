@@ -337,6 +337,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   final TextEditingController _controller = TextEditingController();
   String _query = '';
   String _category = 'All';
+  bool _animateCheckmark = false;
 
   @override
   void dispose() {
@@ -389,14 +390,38 @@ class _InventoryScreenState extends State<InventoryScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Animate',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: scheme.onSurface.withOpacity(0.7),
+                              ),
+                        ),
+                      ),
+                      Switch.adaptive(
+                        value: _animateCheckmark,
+                        onChanged: (value) =>
+                            setState(() => _animateCheckmark = value),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: inventoryCategories
                         .map(
                           (option) => ChoiceChip(
-                            label: Text(option),
+                            label: _FilterChipLabel(
+                              label: option,
+                              selected: _category == option,
+                              animate: _animateCheckmark,
+                            ),
                             selected: _category == option,
+                            showCheckmark: false,
                             onSelected: (_) =>
                                 setState(() => _category = option),
                           ),
@@ -428,6 +453,54 @@ class _InventoryScreenState extends State<InventoryScreen> {
           normalized.isEmpty || item.name.toLowerCase().contains(normalized);
       return matchesCategory && matchesQuery;
     }).toList();
+  }
+}
+
+class _FilterChipLabel extends StatelessWidget {
+  const _FilterChipLabel({
+    required this.label,
+    required this.selected,
+    required this.animate,
+  });
+
+  final String label;
+  final bool selected;
+  final bool animate;
+
+  @override
+  Widget build(BuildContext context) {
+    final duration = animate
+        ? const Duration(milliseconds: 220)
+        : Duration.zero;
+    final labelStyle = DefaultTextStyle.of(context).style;
+    final iconColor = labelStyle.color ?? Theme.of(context).iconTheme.color;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ClipRect(
+          child: AnimatedContainer(
+            duration: duration,
+            curve: Curves.easeOutCubic,
+            width: selected ? 20 : 0,
+            margin: EdgeInsets.only(right: selected ? 4 : 0),
+            alignment: Alignment.centerLeft,
+            child: AnimatedOpacity(
+              duration: duration,
+              curve: Curves.easeOutCubic,
+              opacity: selected ? 1 : 0,
+              child: AnimatedScale(
+                duration: duration,
+                curve: Curves.easeOutCubic,
+                scale: selected ? 1 : 0.6,
+                child: Icon(Icons.check, size: 16, color: iconColor),
+              ),
+            ),
+          ),
+        ),
+        Text(label),
+      ],
+    );
   }
 }
 

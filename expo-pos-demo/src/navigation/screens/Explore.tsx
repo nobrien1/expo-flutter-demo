@@ -2,11 +2,13 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
   Pressable,
+  Switch,
   StyleSheet,
   TextInput,
   View,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -15,10 +17,12 @@ import { CATEGORY_OPTIONS, INVENTORY, type InventoryCategory, type InventoryItem
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 
 const ITEM_HEIGHT = 72;
+const CHECK_ICON_SIZE = 14;
 
 export function Explore() {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<InventoryCategory | 'All'>('All');
+  const [animateCheckmark, setAnimateCheckmark] = useState(false);
   const inputBackground = useThemeColor({ light: '#F1F5F4', dark: '#1E2A28' }, 'background');
   const inputText = useThemeColor({ light: '#0F172A', dark: '#E2E8F0' }, 'text');
 
@@ -73,12 +77,17 @@ export function Explore() {
               placeholderTextColor={inputText + '88'}
               style={[styles.input, { backgroundColor: inputBackground, color: inputText }]}
             />
+            <View style={styles.toggleRow}>
+              <ThemedText style={styles.toggleLabel}>Animate checkmark</ThemedText>
+              <Switch value={animateCheckmark} onValueChange={setAnimateCheckmark} />
+            </View>
             <View style={styles.filterRow}>
               {CATEGORY_OPTIONS.map((option) => (
                 <FilterChip
                   key={option}
                   label={option}
                   selected={option === category}
+                  animate={animateCheckmark}
                   onPress={() => {
                     setCategory(option);
                     if (process.env.EXPO_OS !== 'web') {
@@ -113,10 +122,12 @@ export function Explore() {
 function FilterChip({
   label,
   selected,
+  animate,
   onPress,
 }: {
   label: string;
   selected: boolean;
+  animate: boolean;
   onPress: () => void;
 }) {
   const background = useThemeColor(
@@ -127,6 +138,31 @@ function FilterChip({
     { light: selected ? '#FFFFFF' : '#0F172A', dark: selected ? '#0B1F1C' : '#E2E8F0' },
     'text'
   );
+  const checkProgress = useSharedValue(selected ? 1 : 0);
+
+  useEffect(() => {
+    if (animate) {
+      checkProgress.value = withTiming(selected ? 1 : 0, {
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
+      });
+      return;
+    }
+    checkProgress.value = selected ? 1 : 0;
+  }, [selected, animate, checkProgress]);
+
+  const checkContainerStyle = useAnimatedStyle(() => ({
+    width: (CHECK_ICON_SIZE + 6) * checkProgress.value,
+    marginRight: 4 * checkProgress.value,
+  }));
+
+  const checkIconStyle = useAnimatedStyle(() => ({
+    opacity: checkProgress.value,
+    transform: [
+      { scale: 0.6 + 0.4 * checkProgress.value },
+      { translateX: -4 * (1 - checkProgress.value) },
+    ],
+  }));
 
   return (
     <Pressable
@@ -136,6 +172,11 @@ function FilterChip({
         { backgroundColor: background },
         pressed && styles.chipPressed,
       ]}>
+      <Animated.View style={[styles.checkContainer, checkContainerStyle]}>
+        <Animated.View style={checkIconStyle}>
+          <MaterialIcons name="check" size={CHECK_ICON_SIZE} color={text} />
+        </Animated.View>
+      </Animated.View>
       <ThemedText style={[styles.chipText, { color: text }]}>{label}</ThemedText>
     </Pressable>
   );
@@ -198,6 +239,15 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 8,
   },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  toggleLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
   title: {
     fontFamily: 'SpaceMono',
   },
@@ -219,9 +269,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   chipPressed: {
     transform: [{ scale: 0.98 }],
+  },
+  checkContainer: {
+    height: CHECK_ICON_SIZE,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   chipText: {
     fontSize: 13,
