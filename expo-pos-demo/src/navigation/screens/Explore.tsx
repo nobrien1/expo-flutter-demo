@@ -1,111 +1,217 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  FlatList,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
+import * as Haptics from 'expo-haptics';
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { CATEGORY_OPTIONS, INVENTORY, type InventoryCategory, type InventoryItem } from '@/pos/demoData';
+
+const ITEM_HEIGHT = 72;
 
 export function Explore() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="React Navigation">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">src/navigation/screens/Home.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">src/navigation/screens/Explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The entry point file in{' '}
-          <ThemedText type="defaultSemiBold">src/navigation/index.tsx</ThemedText> sets up the tab
-          navigator.
-        </ThemedText>
-        <ExternalLink href="https://reactnavigation.org/docs/getting-started">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState<InventoryCategory | 'All'>('All');
+  const inputBackground = useThemeColor({ light: '#F1F5F4', dark: '#1E2A28' }, 'background');
+  const inputText = useThemeColor({ light: '#0F172A', dark: '#E2E8F0' }, 'text');
+
+  const filtered = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    return INVENTORY.filter((item) => {
+      const matchesCategory = category === 'All' || item.category === category;
+      const matchesQuery =
+        normalized.length === 0 || item.name.toLowerCase().includes(normalized);
+      return matchesCategory && matchesQuery;
+    });
+  }, [query, category]);
+
+  const renderItem = useCallback(({ item }: { item: InventoryItem }) => {
+    const trendColor = item.trend === 'up' ? '#22C55E' : '#F97316';
+
+    return (
+      <ThemedView style={styles.row} lightColor="#FFFFFF" darkColor="#1B2523">
+        <View style={styles.rowHeader}>
+          <ThemedText type="defaultSemiBold" style={styles.rowTitle}>
+            {item.name}
           </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
+          <ThemedText style={styles.rowMeta}>{item.category}</ThemedText>
+        </View>
+        <View style={styles.rowStats}>
+          <ThemedText style={styles.rowMeta}>${item.price.toFixed(2)}</ThemedText>
+          <View style={[styles.trendBadge, { backgroundColor: trendColor }]} />
+          <ThemedText style={styles.rowMeta}>{item.stock} in stock</ThemedText>
+        </View>
+      </ThemedView>
+    );
+  }, []);
+
+  return (
+    <ThemedView style={styles.container}>
+      <FlatList
+        data={filtered}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={styles.listContent}
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <ThemedText style={styles.subtitle}>
+              {filtered.length} / {INVENTORY.length}
             </ThemedText>
-          ),
+            <TextInput
+              value={query}
+              onChangeText={setQuery}
+              placeholder="Search"
+              placeholderTextColor={inputText + '88'}
+              style={[styles.input, { backgroundColor: inputBackground, color: inputText }]}
+            />
+            <View style={styles.filterRow}>
+              {CATEGORY_OPTIONS.map((option) => (
+                <FilterChip
+                  key={option}
+                  label={option}
+                  selected={option === category}
+                  onPress={() => {
+                    setCategory(option);
+                    if (process.env.EXPO_OS !== 'web') {
+                      void Haptics.selectionAsync();
+                    }
+                  }}
+                />
+              ))}
+            </View>
+          </View>
+        }
+        ListEmptyComponent={
+          <ThemedView style={styles.empty}>
+            <ThemedText type="subtitle">No matches</ThemedText>
+            <ThemedText>Try a different keyword or clear the filters.</ThemedText>
+          </ThemedView>
+        }
+        getItemLayout={(_, index) => ({
+          length: ITEM_HEIGHT,
+          offset: ITEM_HEIGHT * index,
+          index,
         })}
-      </Collapsible>
-    </ParallaxScrollView>
+        initialNumToRender={12}
+        maxToRenderPerBatch={16}
+        windowSize={8}
+        removeClippedSubviews
+      />
+    </ThemedView>
+  );
+}
+
+function FilterChip({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const background = useThemeColor(
+    { light: selected ? '#0F766E' : '#E7F0EE', dark: selected ? '#10B981' : '#243130' },
+    'background'
+  );
+  const text = useThemeColor(
+    { light: selected ? '#FFFFFF' : '#0F172A', dark: selected ? '#0B1F1C' : '#E2E8F0' },
+    'text'
+  );
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.chip,
+        { backgroundColor: background },
+        pressed && styles.chipPressed,
+      ]}>
+      <ThemedText style={[styles.chipText, { color: text }]}>{label}</ThemedText>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
   },
-  titleContainer: {
+  listContent: {
+    padding: 20,
+    gap: 12,
+  },
+  header: {
+    gap: 12,
+    marginBottom: 8,
+  },
+  title: {
+    fontFamily: 'SpaceMono',
+  },
+  subtitle: {
+    opacity: 0.8,
+  },
+  input: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+    fontSize: 16,
+  },
+  filterRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
+  },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  chipPressed: {
+    transform: [{ scale: 0.98 }],
+  },
+  chipText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  row: {
+    height: ITEM_HEIGHT,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  rowHeader: {
+    flex: 1,
+    gap: 4,
+  },
+  rowTitle: {
+    fontSize: 15,
+  },
+  rowStats: {
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  rowMeta: {
+    fontSize: 12,
+    opacity: 0.7,
+  },
+  trendBadge: {
+    width: 28,
+    height: 6,
+    borderRadius: 999,
+  },
+  empty: {
+    borderRadius: 16,
+    padding: 20,
+    gap: 6,
   },
 });
