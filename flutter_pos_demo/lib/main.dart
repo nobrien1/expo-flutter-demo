@@ -66,14 +66,10 @@ class _PerformanceShellState extends State<PerformanceShell> {
         currentIndex: _index,
         onTap: (value) => setState(() => _index = value),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.speed), label: 'Overview'),
+          BottomNavigationBarItem(icon: Icon(Icons.house), label: 'Home'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.view_list),
-            label: 'Workload',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.auto_awesome),
-            label: 'Insights',
+            icon: Icon(Icons.speed),
+            label: 'Performance',
           ),
         ],
       ),
@@ -90,12 +86,7 @@ class OverviewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(child: HeroCard(summary: summary)),
-          SliverToBoxAdapter(child: MetricGrid(summary: summary)),
-          const SliverToBoxAdapter(child: AdvantagePanel()),
-          const SliverToBoxAdapter(child: SizedBox(height: 16)),
-        ],
+        slivers: [SliverToBoxAdapter(child: HeroCard(summary: summary))],
       ),
     );
   }
@@ -155,23 +146,12 @@ class HeroCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Performance Lab',
+                'Flutter',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Sliver lists + animated gauges keep frames smooth while filtering ${summary.total} items.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurface.withOpacity(0.7),
-                ),
-              ),
             ],
-          ),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Icon(Icons.speed, size: 88, color: scheme.primary),
           ),
         ],
       ),
@@ -380,10 +360,16 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 children: [
                   const SizedBox(height: 6),
                   Text(
-                    '${filtered.length} / ${widget.items.length}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    'Flutter',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: scheme.onSurface.withOpacity(0.7),
                     ),
+                  ),
+                  PulseBar(
+                    label: '${filtered.length} / ${widget.items.length}',
+                    caption: '',
+                    color: const Color(0xFF6366F1),
+                    duration: const Duration(milliseconds: 1200),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -503,14 +489,6 @@ class InventoryRow extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Container(
-                      width: 26,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: trendColor,
-                        borderRadius: BorderRadius.circular(99),
-                      ),
-                    ),
                     const SizedBox(width: 6),
                     Text(
                       '${item.stock} in stock',
