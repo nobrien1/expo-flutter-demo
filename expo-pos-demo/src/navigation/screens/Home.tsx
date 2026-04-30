@@ -35,58 +35,11 @@ export function Home() {
             lightColor="transparent"
             darkColor="transparent"
           />
-          <IconSymbol name="speedometer" size={128} color={tint} style={styles.heroIcon} />
         </ThemedView>
       }>
       <ThemedView style={styles.titleBlock}>
         <ThemedText type="title" style={styles.title}>
-          Performance Lab
-        </ThemedText>
-        <ThemedText>
-          Large list rendering, fast filters, and UI-thread animation running in sync with
-          gestures.
-        </ThemedText>
-      </ThemedView>
-
-      <ThemedView style={styles.grid} lightColor="transparent" darkColor="transparent">
-        <StatCard
-          label="Active SKUs"
-          value={`${SUMMARY.total}`}
-          hint="Live virtualized list"
-          accent="#14B8A6"
-        />
-        <StatCard
-          label="Low stock"
-          value={`${SUMMARY.lowStock}`}
-          hint="Auto restock signals"
-          accent="#F97316"
-        />
-        <StatCard
-          label="Avg price"
-          value={`$${SUMMARY.avgPrice}`}
-          hint="Mock POS catalog"
-          accent="#60A5FA"
-        />
-        <StatCard
-          label="Fast movers"
-          value={`${SUMMARY.fastMovers}`}
-          hint="Velocity > 70"
-          accent="#A78BFA"
-        />
-      </ThemedView>
-
-      <ThemedView style={styles.panel} lightColor="#F5FAF8" darkColor="#182423">
-        <ThemedText type="subtitle">UI thread pulse</ThemedText>
-        <ThemedText style={styles.panelText}>
-          Reanimated keeps this bar moving at 60fps even while the list below is filtering.
-        </ThemedText>
-        <PerformanceMeter />
-      </ThemedView>
-
-      <ThemedView style={styles.panel} lightColor="#F7F8FB" darkColor="#1B1F2A">
-        <ThemedText type="subtitle">Expo advantage</ThemedText>
-        <ThemedText style={styles.panelText}>
-          Ship OTA updates, reuse native modules, and target web and native with one codebase.
+          React Native (Expo)
         </ThemedText>
       </ThemedView>
     </ParallaxScrollView>
@@ -206,6 +159,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: 'SpaceMono',
+    textAlign: 'center',
   },
   grid: {
     flexDirection: 'row',

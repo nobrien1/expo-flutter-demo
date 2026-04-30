@@ -1,11 +1,9 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStaticNavigation, StaticParamList } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Platform } from 'react-native';
 
 import { Explore } from './screens/Explore';
 import { Home } from './screens/Home';
-import { Insights } from './screens/Insights';
 import { NotFound } from './screens/NotFound';
 
 import { HapticTab } from '@/components/HapticTab';
@@ -18,26 +16,18 @@ const HomeTabs = createBottomTabNavigator({
       screen: Home,
       options: {
         headerShown: false,
-        title: 'Overview',
-        tabBarIcon: ({ color }) => <IconSymbol size={28} name="speedometer" color={color} />,
+        title: 'Home',
+        tabBarIcon: ({ color }) => <IconSymbol size={28} name="house" color={color} />,
       },
     },
     Explore: {
       screen: Explore,
       options: {
         headerShown: false,
-        title: 'Workload',
+        title: 'Performance',
         tabBarIcon: ({ color }) => (
-          <IconSymbol size={28} name="list.bullet.rectangle" color={color} />
+          <IconSymbol size={28} name="speedometer" color={color} />
         ),
-      },
-    },
-    Insights: {
-      screen: Insights,
-      options: {
-        headerShown: false,
-        title: 'Insights',
-        tabBarIcon: ({ color }) => <IconSymbol size={28} name="sparkles" color={color} />,
       },
     },
   },
@@ -45,13 +35,6 @@ const HomeTabs = createBottomTabNavigator({
     headerShown: false,
     tabBarButton: HapticTab,
     tabBarBackground: TabBarBackground,
-    tabBarStyle: Platform.select({
-      ios: {
-        // Use a transparent background on iOS to show the blur effect
-        possition: 'absolute',
-      },
-      default: {},
-    }),
   },
 });
 

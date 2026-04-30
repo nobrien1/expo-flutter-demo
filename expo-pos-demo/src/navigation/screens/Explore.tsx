@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
   Pressable,
@@ -12,6 +12,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { CATEGORY_OPTIONS, INVENTORY, type InventoryCategory, type InventoryItem } from '@/pos/demoData';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 
 const ITEM_HEIGHT = 72;
 
@@ -32,8 +33,6 @@ export function Explore() {
   }, [query, category]);
 
   const renderItem = useCallback(({ item }: { item: InventoryItem }) => {
-    const trendColor = item.trend === 'up' ? '#22C55E' : '#F97316';
-
     return (
       <ThemedView style={styles.row} lightColor="#FFFFFF" darkColor="#1B2523">
         <View style={styles.rowHeader}>
@@ -44,7 +43,6 @@ export function Explore() {
         </View>
         <View style={styles.rowStats}>
           <ThemedText style={styles.rowMeta}>${item.price.toFixed(2)}</ThemedText>
-          <View style={[styles.trendBadge, { backgroundColor: trendColor }]} />
           <ThemedText style={styles.rowMeta}>{item.stock} in stock</ThemedText>
         </View>
       </ThemedView>
@@ -60,9 +58,14 @@ export function Explore() {
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           <View style={styles.header}>
-            <ThemedText style={styles.subtitle}>
-              {filtered.length} / {INVENTORY.length}
+            <ThemedText style={styles.rowTitle} type="defaultSemiBold">
+              React Native (Expo)
             </ThemedText>
+            <PulseRow
+              label={`${filtered.length} / ${INVENTORY.length}`}
+              accent="#6366F1"
+              duration={1100}
+            />
             <TextInput
               value={query}
               onChangeText={setQuery}
@@ -135,6 +138,51 @@ function FilterChip({
       ]}>
       <ThemedText style={[styles.chipText, { color: text }]}>{label}</ThemedText>
     </Pressable>
+  );
+}
+
+function PulseRow({
+  label,
+  accent,
+  duration,
+}: {
+  label: string;
+  accent: string;
+  duration: number;
+}) {
+  const width = useSharedValue(0);
+  const progress = useSharedValue(0.15);
+
+  useEffect(() => {
+    progress.value = withRepeat(
+      withTiming(1, { duration, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true
+    );
+  }, [duration, progress]);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    const target = width.value * (0.2 + progress.value * 0.8);
+    return {
+      width: Math.max(12, target),
+    };
+  });
+
+  return (
+    <ThemedView style={styles.pulseCard} lightColor="#F6F7FB" darkColor="#1A202B">
+      <View style={styles.pulseHeader}>
+        <ThemedText type="defaultSemiBold">{label}</ThemedText>
+      </View>
+      <ThemedView
+        style={styles.pulseTrack}
+        lightColor="#E4EBF5"
+        darkColor="#2A3341"
+        onLayout={(event) => {
+          width.value = event.nativeEvent.layout.width;
+        }}>
+        <Animated.View style={[styles.pulseFill, { backgroundColor: accent }, animatedStyle]} />
+      </ThemedView>
+    </ThemedView>
   );
 }
 
@@ -213,5 +261,29 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     gap: 6,
+  },
+  pulseGrid: {
+    gap: 12,
+  },
+  pulseCard: {
+    borderRadius: 18,
+    padding: 16,
+    gap: 12,
+  },
+  pulseHeader: {
+    gap: 4,
+  },
+  pulseCaption: {
+    fontSize: 12,
+    opacity: 0.7,
+  },
+  pulseTrack: {
+    height: 10,
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  pulseFill: {
+    height: 10,
+    borderRadius: 999,
   },
 });
