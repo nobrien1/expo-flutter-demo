@@ -1,7 +1,7 @@
 # Frontend Framework Comparison
 
 ### React Native (Expo)
-A demo is located in '/expo'
+A demo is located in `/expo`
 
 ### Flutter
-A demo is located in '/flutter'
+A demo is located in `/flutter`
